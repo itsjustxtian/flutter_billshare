@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_billshare/screens/Homepage.dart';
-import 'package:flutter_billshare/screens/Bills.dart';
-import 'package:flutter_billshare/screens/Analytics.dart';
-import 'package:flutter_billshare/screens/Settings.dart';
+import 'package:flutter_billshare/screens/dashboard.dart';
+import 'package:flutter_billshare/screens/bills.dart';
+import 'package:flutter_billshare/screens/analytics.dart';
+import 'package:flutter_billshare/screens/settings.dart';
 import 'package:flutter_billshare/widgets/main_drawer.dart';
+import 'package:flutter_billshare/screens/authentication_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://mptjfwgrofirqbfbhaoa.supabase.co',
+    anonKey: 'sb_publishable_Vpdm4Sutt2TIrBoPcyR8cQ_CmTFg9sJ',
+  );
   runApp(const MyApp());
 }
+
+final supabase = Supabase.instance.client;
 
 Widget getSelectedPage(String pageName) {
   switch (pageName) {
@@ -19,6 +29,8 @@ Widget getSelectedPage(String pageName) {
       return AnalyticsPage();
     case 'Settings':
       return SettingsPage();
+    case 'Login':
+      return AuthenticationPage();
     default:
       return Homepage();
   }
@@ -27,22 +39,40 @@ Widget getSelectedPage(String pageName) {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ShadApp(
       title: 'BillShare',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-      ),
-      home: const MyHomePage(title: 'BillShare'),
+      debugShowCheckedModeBanner: false,
+      home: AuthGate(), // 👈 decide login vs home here
+    );
+  }
+}
+
+/// Decides whether to show Login or Home
+class AuthGate extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<AuthState>(
+      stream: supabase.auth.onAuthStateChange,
+      builder: (context, snapshot) {
+        final session = supabase.auth.currentSession;
+
+        if (session == null) {
+          // Not logged in
+          print("Not Logged in.");
+          return AuthenticationPage();
+        } else {
+          // Logged in
+          return const MyHomePage(title: 'BillShare');
+        }
+      },
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
   final String title;
 
   @override
@@ -50,7 +80,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String currentPage = "";
+  String currentPage = "Home"; // 👈 default to Home
 
   void setSelectedPage(String selectedPage) {
     setState(() {
@@ -62,15 +92,18 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(currentPage),
+        backgroundColor: Color(0xFF415F40),
+        title: Text(
+          currentPage,
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         leading: Builder(
           builder: (context) {
             return IconButton(
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
-              icon: const Icon(Icons.menu),
+              icon: const Icon(Icons.menu, color: Colors.white),
             );
           },
         ),
