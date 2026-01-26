@@ -3,6 +3,7 @@ import 'package:flutter_billshare/screens/dashboard.dart';
 import 'package:flutter_billshare/screens/bills.dart';
 import 'package:flutter_billshare/screens/analytics.dart';
 import 'package:flutter_billshare/screens/settings.dart';
+import 'package:flutter_billshare/utils/utils.dart';
 import 'package:flutter_billshare/widgets/main_drawer.dart';
 import 'package:flutter_billshare/screens/authentication_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -92,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF415F40),
+        backgroundColor: context.background,
         title: Text(
           currentPage,
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),

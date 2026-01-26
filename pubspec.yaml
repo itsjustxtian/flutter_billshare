@@ -38,6 +38,8 @@ dependencies:
   shadcn_ui: ^0.30.0
   email_validator: ^3.0.0
   google_fonts: ^8.0.0
+  flutter_speed_dial: ^7.0.0
+  moon_design: ^1.1.0
 
 dev_dependencies:
   flutter_test:
