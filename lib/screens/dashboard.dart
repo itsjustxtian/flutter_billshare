@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_billshare/screens/add_bill.dart';
+import 'package:flutter_billshare/screens/view_bill.dart';
 import 'package:flutter_billshare/utils/dashboard_services.dart';
 import 'package:flutter_billshare/utils/utils.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -311,6 +312,7 @@ class _HomepageState extends State<Homepage> {
                             amount: bill['amount_due'].toString(),
                             tagColor: bill['tag_color'] ?? '#FFFFFF',
                             status: bill['status'],
+                            billData: bill,
                           ),
                         );
                       }).toList(),
@@ -331,6 +333,7 @@ class BillCard extends StatelessWidget {
   final String amount;
   final String tagColor;
   final String status;
+  final Map<String, dynamic> billData;
 
   const BillCard({
     super.key,
@@ -339,99 +342,118 @@ class BillCard extends StatelessWidget {
     required this.amount,
     required this.tagColor,
     required this.status,
+    required this.billData,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ShadCard(
-      width: double.infinity,
-      backgroundColor: const Color(0xFF3C4E3C),
-      border: Border.all(width: 0, color: Colors.transparent),
-      padding: const EdgeInsets.all(8),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // The side strip
-            Container(
-              width: 8,
-              decoration: BoxDecoration(
-                color: tagColor.toColor(),
-                borderRadius: BorderRadius.circular(4),
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ViewBillPage(bill: billData),
             ),
-            // The content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+          );
+        },
+        child: ShadCard(
+          width: double.infinity,
+          backgroundColor: const Color(0xFF3C4E3C),
+          border: Border.all(width: 0, color: Colors.transparent),
+          padding: const EdgeInsets.all(8),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // The side strip
+                Container(
+                  width: 8,
+                  decoration: BoxDecoration(
+                    color: tagColor.toColor(),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // The content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: context.foreground,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                title,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: context.foreground,
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              date,
+                              style: TextStyle(
+                                color: context.foreground.withValues(
+                                  alpha: 0.50,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          date,
-                          style: TextStyle(
-                            color: context.foreground.withValues(alpha: 0.50),
-                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "PHP $amount",
+                              style: TextStyle(
+                                color: context.foreground,
+                                // If status is 'paid', apply strikethrough; otherwise, none.
+                                decoration: status.toLowerCase() == 'paid'
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none,
+                                // You can also change the thickness or color of the line
+                                decorationColor: context.foreground.withValues(
+                                  alpha: 0.75,
+                                ),
+                                decorationThickness: 2.0,
+                              ),
+                            ),
+                            Text(
+                              status,
+                              style: TextStyle(
+                                // Tip: Maybe make 'Paid' look different (e.g., green)
+                                color: status.toLowerCase() == 'paid'
+                                    ? Colors.green.withValues(alpha: 0.7)
+                                    : context.foreground.withValues(
+                                        alpha: 0.50,
+                                      ),
+                                fontWeight: status.toLowerCase() == 'paid'
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "PHP $amount",
-                          style: TextStyle(
-                            color: context.foreground,
-                            // If status is 'paid', apply strikethrough; otherwise, none.
-                            decoration: status.toLowerCase() == 'paid'
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                            // You can also change the thickness or color of the line
-                            decorationColor: context.foreground.withValues(
-                              alpha: 0.75,
-                            ),
-                            decorationThickness: 2.0,
-                          ),
-                        ),
-                        Text(
-                          status,
-                          style: TextStyle(
-                            // Tip: Maybe make 'Paid' look different (e.g., green)
-                            color: status.toLowerCase() == 'paid'
-                                ? Colors.green.withValues(alpha: 0.7)
-                                : context.foreground.withValues(alpha: 0.50),
-                            fontWeight: status.toLowerCase() == 'paid'
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -11,4 +11,5 @@ This application was created using Flutter. It is a Bill/Expense tracking applic
   - Added a colorpicker to Add Bill Form to facilitate color tagging.
   - Added a refresh indicator function.
   - Added a carousel for Remaining Expenses and Monthly Summary.
+  - Added a path to View Bill.
 - _01/27/2025_: Created a bill_services.dart file to separate the backend logic from the UI logic.
