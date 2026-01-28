@@ -50,7 +50,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Decides whether to show Login or Home
 class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -60,11 +59,9 @@ class AuthGate extends StatelessWidget {
         final session = supabase.auth.currentSession;
 
         if (session == null) {
-          // Not logged in
           print("Not Logged in.");
           return AuthenticationPage();
         } else {
-          // Logged in
           return const MyHomePage(title: 'BillShare');
         }
       },
