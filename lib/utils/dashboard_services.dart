@@ -24,7 +24,7 @@ class DashboardServices {
 
       return total;
     } catch (e) {
-      print('Error fetching expenses: $e');
+      // print('Error fetching expenses: $e');
       return 0.0;
     }
   }
@@ -48,7 +48,7 @@ class DashboardServices {
 
       return total;
     } catch (e) {
-      print('Error fetching expenses: $e');
+      // print('Error fetching expenses: $e');
       return 0.0;
     }
   }
@@ -68,7 +68,7 @@ class DashboardServices {
 
       return bills;
     } catch (e) {
-      print('Error fetching expenses: $e');
+      // print('Error fetching expenses: $e');
       return null;
     }
   }

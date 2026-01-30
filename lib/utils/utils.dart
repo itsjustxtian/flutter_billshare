@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -45,4 +43,13 @@ extension BrandColors on BuildContext {
       color: darkGreen,
     ),
   );
+  TextStyle get mainProfileTitle => GoogleFonts.poppins(
+    color: white,
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+  );
+  TextStyle get mainProfileSubtitle => TextStyle(color: white, fontSize: 16);
+  TextStyle get settingsTitle => GoogleFonts.poppins(color: white);
+  TextStyle get settingsSubtitle =>
+      TextStyle(color: white.withValues(alpha: 0.60));
 }

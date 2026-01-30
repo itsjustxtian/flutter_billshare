@@ -59,7 +59,7 @@ class AuthGate extends StatelessWidget {
         final session = supabase.auth.currentSession;
 
         if (session == null) {
-          print("Not Logged in.");
+          // print("Not Logged in.");
           return AuthenticationPage();
         } else {
           return const MyHomePage(title: 'BillShare');

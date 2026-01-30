@@ -14,7 +14,7 @@ class BillService {
         await _saveSingleBill(formData);
       }
     } catch (e) {
-      print('Database Error: $e');
+      // print('Database Error: $e');
       throw Exception('Failed to save bill: $e');
     }
   }

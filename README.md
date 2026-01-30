@@ -4,6 +4,9 @@ This application was created using Flutter. It is a Bill/Expense tracking applic
 
 ## Updates
 
+- _01/29/2026_
+  - Added settings
+  - Added an EditProfilePage
 - _01/28/2026_:
   - Moved backend logic to bill_services.dart file and imported the saveBill function into the add_bill.dart file.
   - Added a getMonthlyBillInstances() function to get monthly bill instances

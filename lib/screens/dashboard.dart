@@ -88,6 +88,8 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _handleRefresh() async {
     await _refreshAllData();
+
+    if (!mounted) return;
     ShadSonner.of(
       context,
     ).show(const ShadToast(title: Text('Dashboard updated!')));
@@ -205,7 +207,6 @@ class _HomepageState extends State<Homepage> {
               setState(() => _isSheetOpen = true); // Hide the FAB
 
               bottomSheetBuilder(context).then((_) {
-                // When the sheet is closed (swiped down or submitted)
                 setState(() => _isSheetOpen = false); // Show the FAB again
               });
             },
@@ -315,7 +316,7 @@ class _HomepageState extends State<Homepage> {
                             billData: bill,
                           ),
                         );
-                      }).toList(),
+                      }),
                   ],
                 ),
               ],
