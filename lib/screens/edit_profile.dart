@@ -21,10 +21,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (!(editProfileKey.currentState?.saveAndValidate() ?? false)) return;
 
     final values = editProfileKey.currentState!.value;
-    final String fullName = values['full_name'];
-    final String username = values['username'];
-    final String avatarUrl = values['avatar_url'];
-    final String websiteUrl = values['website_url'];
+    final String fullName = (values['full_name'] as String?) ?? '';
+    final String username = (values['username'] as String?) ?? '';
+    final String avatarUrl = (values['avatar_url'] as String?) ?? '';
+    final String websiteUrl = (values['website_url'] as String?) ?? '';
 
     setState(() => isLoading = true);
 
@@ -104,7 +104,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     label: Text('Full Name'),
                     placeholder: const Text('ex. "Juan Dela Cruz"'),
                     decoration: context.addBillFormInputDecoration,
-                    keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                   ),
                   SizedBox(height: 8),
@@ -115,7 +114,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     label: Text('Username'),
                     placeholder: const Text('ex. "Juan"'),
                     decoration: context.addBillFormInputDecoration,
-                    keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                   ),
                   SizedBox(height: 8),
@@ -128,7 +126,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       'Enter a link of an image available online',
                     ),
                     decoration: context.addBillFormInputDecoration,
-                    keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                   ),
                   SizedBox(height: 8),
@@ -141,7 +138,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       'Enter a link where people can find you.',
                     ),
                     decoration: context.addBillFormInputDecoration,
-                    keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                   ),
                   SizedBox(height: 8),

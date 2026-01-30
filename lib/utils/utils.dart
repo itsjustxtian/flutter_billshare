@@ -43,6 +43,23 @@ extension BrandColors on BuildContext {
       color: darkGreen,
     ),
   );
+  ShadDecoration get editEmailAndPasswordFormInputDecoration => ShadDecoration(
+    color: white,
+    border: ShadBorder(padding: EdgeInsets.all(0), offset: 0),
+    secondaryBorder: ShadBorder.all(
+      width: 1,
+      radius: BorderRadius.all(Radius.circular(4)),
+      color: accentGreen,
+    ),
+    secondaryFocusedBorder: ShadBorder.all(
+      color: accentGreen,
+      radius: BorderRadius.all(Radius.circular(4)),
+    ),
+    labelStyle: GoogleFonts.poppins(
+      fontWeight: FontWeight.w500,
+      color: darkGreen,
+    ),
+  );
   TextStyle get mainProfileTitle => GoogleFonts.poppins(
     color: white,
     fontSize: 22,

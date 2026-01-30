@@ -94,6 +94,41 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
     }
   }
 
+  Future<void> _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty || !EmailValidator.validate(email)) {
+      ShadToaster.of(context).show(
+        const ShadToast.destructive(
+          description: Text('Please enter a valid email address first.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await supabase.auth.resetPasswordForEmail(email);
+
+      if (mounted) {
+        ShadToaster.of(context).show(
+          const ShadToast(
+            title: Text('Reset link sent!'),
+            description: Text('Check your inbox to reset your password.'),
+          ),
+        );
+      }
+    } on AuthException catch (error) {
+      if (mounted) {
+        ShadToaster.of(
+          context,
+        ).show(ShadToast.destructive(description: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -205,6 +240,16 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
                                   },
                                 ),
                               ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: ShadButton.link(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: _isLoading
+                                      ? null
+                                      : _handleForgotPassword,
+                                  child: const Text('Forgot password?'),
+                                ),
+                              ),
                               const SizedBox(height: 16),
                             ],
                           ),
@@ -217,7 +262,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
                       content: ShadCard(
                         title: const Text('Sign Up'),
                         description: const Text(
-                          "Create a new account using your email address.",
+                          "Create a new account using your email address. Only active email addresses may receive a password reset link.",
                         ),
                         footer: ShadButton(
                           onPressed: _isLoading ? null : _handleRegister,

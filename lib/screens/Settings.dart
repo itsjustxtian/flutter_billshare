@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_billshare/main.dart';
+import 'package:flutter_billshare/screens/edit_email_and_password.dart';
 import 'package:flutter_billshare/screens/edit_profile.dart';
 import 'package:flutter_billshare/utils/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -118,6 +119,41 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<dynamic> bottomPasswordSheetBuilder(
+    BuildContext context,
+    UserInfo userProfile,
+  ) {
+    return showMoonModalBottomSheet(
+      context: context,
+      backgroundColor: context.lightGreen,
+      enableDrag: true,
+      height: MediaQuery.of(context).size.height * 0.7,
+      builder: (BuildContext context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 4,
+              width: 40,
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              decoration: ShapeDecoration(
+                color: context.darkBackground,
+                shape: MoonSquircleBorder(
+                  borderRadius: BorderRadius.circular(
+                    16,
+                  ).squircleBorderRadius(context),
+                ),
+              ),
+            ),
+            Flexible(child: EditEmailAndPasswordPage(profile: userProfile)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -210,6 +246,25 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     onPressed: () {
                       bottomSheetBuilder(context, userData!);
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ShadButton.outline(
+                    pressedBackgroundColor: context.lightGreen,
+                    pressedForegroundColor: context.darkGreen,
+                    foregroundColor: context.white,
+                    leading: Icon(Icons.password, color: context.white),
+                    child: Text(
+                      'Change Email and Password',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () {
+                      bottomPasswordSheetBuilder(context, userData!);
                     },
                   ),
                 ],
