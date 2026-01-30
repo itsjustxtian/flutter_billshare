@@ -7,6 +7,8 @@ This application was created using Flutter. It is a Bill/Expense tracking applic
 - _01/30/2026_
   - Added feature to edit email and password
   - Added a password reset feature onto Log In tab in Log In page.
+  - Added a ViewBill page
+  - Added bill_payments table to database to track member payments
 - _01/29/2026_
   - Added settings
   - Added an EditProfilePage

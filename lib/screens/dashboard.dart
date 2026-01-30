@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_billshare/screens/add_bill.dart';
 import 'package:flutter_billshare/screens/view_bill.dart';
+import 'package:flutter_billshare/utils/bill_services.dart';
 import 'package:flutter_billshare/utils/dashboard_services.dart';
 import 'package:flutter_billshare/utils/utils.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -356,7 +357,8 @@ class BillCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ViewBillPage(bill: billData),
+              builder: (context) =>
+                  ViewBillPage(bill: BillInstance.fromMap(billData)),
             ),
           );
         },

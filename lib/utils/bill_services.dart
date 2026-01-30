@@ -6,7 +6,6 @@ class BillService {
 
   Future<void> saveBill({required Map<String, dynamic> formData}) async {
     final bool isRecurring = formData['is_recurring'] ?? false;
-
     try {
       if (isRecurring) {
         await _saveRecurringBill(formData);
@@ -14,27 +13,31 @@ class BillService {
         await _saveSingleBill(formData);
       }
     } catch (e) {
-      // print('Database Error: $e');
       throw Exception('Failed to save bill: $e');
     }
   }
 
   Future<void> _saveSingleBill(Map<String, dynamic> formData) async {
-    await _supabase.from('bill_instances').insert({
-      'title': formData['title'],
-      'description': formData['description'],
-      'amount_due': _parseAmount(formData['total_amount']),
-      'due_date': (formData['due_date'] as DateTime).toIso8601String(),
-      'members_snapshot': formData['members'],
-      'status': formData['payment_status'] ? 'Paid' : 'Pending',
-      'tag_color': formData['tag_color'],
-    });
+    final billResponse = await _supabase
+        .from('bill_instances')
+        .insert({
+          'title': formData['title'],
+          'description': formData['description'],
+          'amount_due': _parseAmount(formData['total_amount']),
+          'due_date': (formData['due_date'] as DateTime).toIso8601String(),
+          'members_snapshot': formData['members'],
+          'status': formData['payment_status'] ? 'Paid' : 'Pending',
+          'tag_color': formData['tag_color'],
+        })
+        .select('instance_id, amount_due, members_snapshot')
+        .single();
+
+    await _createPaymentRows(billResponse);
   }
 
   Future<void> _saveRecurringBill(Map<String, dynamic> formData) async {
     final DateTime firstDueDate = formData['due_date'] as DateTime;
     final frequency = formData['recurring_frequency'] as RecurringFrequency;
-
     final nextDate = _calculateNextDate(firstDueDate, frequency);
 
     final template = await _supabase
@@ -43,8 +46,7 @@ class BillService {
           'title': formData['title'],
           'description': formData['description'],
           'base_amount': _parseAmount(formData['total_amount']),
-          'frequency':
-              (formData['recurring_frequency'] as RecurringFrequency).name,
+          'frequency': frequency.name,
           'members': formData['members'],
           'next_generation_date': nextDate.toIso8601String(),
           'tag_color': formData['tag_color'],
@@ -52,16 +54,44 @@ class BillService {
         .select()
         .single();
 
-    await _supabase.from('bill_instances').insert({
-      'template_id': template['template_id'],
-      'title': formData['title'],
-      'description': formData['description'],
-      'amount_due': _parseAmount(formData['total_amount']),
-      'due_date': firstDueDate.toIso8601String(),
-      'members_snapshot': formData['members'],
-      'status': formData['payment_status'] ? 'Paid' : 'Pending',
-      'tag_color': formData['tag_color'],
-    });
+    final billResponse = await _supabase
+        .from('bill_instances')
+        .insert({
+          'template_id': template['template_id'],
+          'title': formData['title'],
+          'description': formData['description'],
+          'amount_due': _parseAmount(formData['total_amount']),
+          'due_date': firstDueDate.toIso8601String(),
+          'members_snapshot': formData['members'],
+          'status': formData['payment_status'] ? 'Paid' : 'Pending',
+          'tag_color': formData['tag_color'],
+        })
+        .select('instance_id, amount_due, members_snapshot')
+        .single();
+
+    await _createPaymentRows(billResponse);
+  }
+
+  Future<void> _createPaymentRows(Map<String, dynamic> billData) async {
+    final String instanceId = billData['instance_id'];
+    final double totalAmount = _parseAmount(billData['amount_due']);
+    final List<dynamic> members = billData['members_snapshot'] ?? [];
+
+    if (members.isEmpty) return;
+
+    final double splitAmount = totalAmount / members.length;
+
+    final List<Map<String, dynamic>> paymentRows = members.map((name) {
+      return {
+        'instance_id': instanceId,
+        'member_name': name.toString(),
+        'amount_owed': splitAmount,
+        'amount_paid': 0.0,
+        'user_id': _supabase.auth.currentUser?.id,
+      };
+    }).toList();
+
+    await _supabase.from('bill_payments').insert(paymentRows);
   }
 
   double _parseAmount(dynamic val) {
@@ -132,5 +162,66 @@ DateTime _calculateNextDate(DateTime current, RecurringFrequency freq) {
       return DateTime(current.year, current.month + 1, current.day);
     case RecurringFrequency.yearly:
       return DateTime(current.year + 1, current.month, current.day);
+  }
+}
+
+class BillInstance {
+  final String instanceId;
+  final String? templateId;
+  final String createdBy;
+  final String title;
+  final String? description;
+  final double amountDue;
+  final DateTime dueDate;
+  final List<dynamic> membersSnapshot; // Maps to jsonb
+  final String status;
+  final DateTime? createdAt;
+  final String? tagColor;
+
+  BillInstance({
+    required this.instanceId,
+    this.templateId,
+    required this.createdBy,
+    required this.title,
+    this.description,
+    required this.amountDue,
+    required this.dueDate,
+    required this.membersSnapshot,
+    required this.status,
+    this.createdAt,
+    this.tagColor,
+  });
+
+  factory BillInstance.fromMap(Map<String, dynamic> map) {
+    return BillInstance(
+      instanceId: map['instance_id'],
+      templateId: map['template_id'],
+      createdBy: map['created_by'],
+      title: map['title'],
+      description: map['description'],
+      amountDue: (map['amount_due'] as num).toDouble(),
+      dueDate: DateTime.parse(map['due_date']),
+      membersSnapshot: List<dynamic>.from(map['members_snapshot'] ?? []),
+      status: map['status'],
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : null,
+      tagColor: map['tag_color'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (instanceId.isNotEmpty) 'instance_id': instanceId,
+      'template_id': templateId,
+      'created_by': createdBy,
+      'title': title,
+      'description': description,
+      'amount_due': amountDue,
+      'due_date': dueDate.toIso8601String(),
+      'members_snapshot': membersSnapshot,
+      'status': status,
+      'tag_color': tagColor,
+    };
   }
 }
