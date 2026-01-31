@@ -94,6 +94,40 @@ class BillService {
     await _supabase.from('bill_payments').insert(paymentRows);
   }
 
+  Future<List<Map<String, dynamic>>> fetchPaymentsForBill(
+    String instanceId,
+  ) async {
+    try {
+      final List<Map<String, dynamic>> response = await _supabase
+          .from('bill_payments')
+          .select()
+          .eq('instance_id', instanceId)
+          .order('member_name', ascending: true);
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to fetch payments: $e');
+    }
+  }
+
+  /// Records a specific partial payment amount
+  Future<void> recordPartialPayment(String paymentId, double newTotal) async {
+    await _supabase
+        .from('bill_payments')
+        .update({
+          'amount_paid': newTotal,
+          'paid_at': DateTime.now().toIso8601String(),
+        })
+        .eq('payment_id', paymentId);
+  }
+
+  Future<void> updateBillStatus(String instanceId, String status) async {
+    await _supabase
+        .from('bill_instances')
+        .update({'status': status})
+        .eq('instance_id', instanceId);
+  }
+
   double _parseAmount(dynamic val) {
     if (val is double) return val;
     return double.tryParse(val.toString()) ?? 0.0;
@@ -174,7 +208,7 @@ class BillInstance {
   final double amountDue;
   final DateTime dueDate;
   final List<dynamic> membersSnapshot; // Maps to jsonb
-  final String status;
+  String status;
   final DateTime? createdAt;
   final String? tagColor;
 
@@ -223,5 +257,37 @@ class BillInstance {
       'status': status,
       'tag_color': tagColor,
     };
+  }
+}
+
+class BillPayments {
+  final String paymentId;
+  final String? instanceId;
+  final String memberName;
+  final double amountOwed;
+  double? amountPaid;
+  final DateTime? paidAt;
+  final String userId;
+
+  BillPayments({
+    required this.paymentId,
+    this.instanceId,
+    required this.memberName,
+    required this.amountOwed,
+    this.amountPaid,
+    this.paidAt,
+    required this.userId,
+  });
+
+  factory BillPayments.fromMap(Map<String, dynamic> map) {
+    return BillPayments(
+      paymentId: map['payment_id'],
+      instanceId: map['instance_id'],
+      memberName: map['member_name'] ?? 'Unknown',
+      amountOwed: (map['amount_owed'] as num).toDouble(),
+      amountPaid: (map['amount_paid'] as num? ?? 0).toDouble(),
+      paidAt: map['paid_at'] != null ? DateTime.parse(map['paid_at']) : null,
+      userId: map['user_id'] ?? '',
+    );
   }
 }

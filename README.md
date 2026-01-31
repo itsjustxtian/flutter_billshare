@@ -5,6 +5,10 @@ This application was created using Flutter. It is a Bill/Expense tracking applic
 ## Updates
 
 - _01/30/2026_
+  - Added more details to View Bill
+  - Added a bottom sheet to update payments table
+  - Added a "Mark Bill as Paid/Pending button"
+- _01/30/2026_
   - Added feature to edit email and password
   - Added a password reset feature onto Log In tab in Log In page.
   - Added a ViewBill page
