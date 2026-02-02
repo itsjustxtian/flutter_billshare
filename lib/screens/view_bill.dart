@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_billshare/screens/edit_bill.dart';
 import 'package:flutter_billshare/screens/update_bill_payment.dart';
 import 'package:flutter_billshare/utils/bill_services.dart';
 import 'package:flutter_billshare/utils/utils.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:moon_design/moon_design.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -19,24 +21,34 @@ class ViewBillPage extends StatefulWidget {
 class _ViewBillPageState extends State<ViewBillPage> {
   final BillService _billService = BillService();
   List<BillPayments> memberPayments = [];
+  late BillInstance localBill;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    localBill = widget.bill;
     _loadPayments();
   }
 
   Future<void> _loadPayments() async {
     try {
-      final data = await _billService.fetchPaymentsForBill(
-        widget.bill.instanceId,
+      final paymentsData = await _billService.fetchPaymentsForBill(
+        localBill.instanceId,
+      );
+      final updatedBill = await _billService.fetchBillById(
+        localBill.instanceId,
       );
 
       setState(() {
-        memberPayments = data
+        memberPayments = paymentsData
             .map((json) => BillPayments.fromMap(json))
             .toList();
+
+        if (updatedBill != null) {
+          localBill = updatedBill;
+        }
+
         isLoading = false;
       });
     } catch (e) {
@@ -61,28 +73,33 @@ class _ViewBillPageState extends State<ViewBillPage> {
   }
 
   Future<void> _updateStatus() async {
-    // 1. Determine the new status based on current status
-    final String newStatus = widget.bill.status == 'Paid' ? 'Pending' : 'Paid';
+    String newStatus;
+
+    if (localBill.status != 'Paid') {
+      newStatus = 'Paid';
+    } else {
+      final bool isPastDue = DateTime.now().isAfter(localBill.dueDate);
+      newStatus = isPastDue ? 'Overdue' : 'Pending';
+    }
 
     try {
-      // 2. Update Supabase via your Service
-      // Ensure you have this method in your BillService
-      await _billService.updateBillStatus(widget.bill.instanceId, newStatus);
+      await _billService.updateBillStatus(localBill.instanceId, newStatus);
 
       setState(() {
-        widget.bill.status = newStatus;
+        localBill.status = newStatus;
       });
 
-      // 4. Show success feedback
       if (!mounted) return;
+
       ShadSonner.of(context).show(
         ShadToast(
-          title: Text('Bill updated to $newStatus'),
-          description: Text('The bill status has been successfully synced.'),
+          title: Text('Bill marked as $newStatus'),
+          description: const Text(
+            'The bill status has been successfully synced.',
+          ),
         ),
       );
     } catch (e) {
-      // 5. Handle errors
       if (!mounted) return;
       ShadSonner.of(context).show(
         ShadToast.destructive(
@@ -97,13 +114,70 @@ class _ViewBillPageState extends State<ViewBillPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.darkBackground,
+      floatingActionButton: SpeedDial(
+        animatedIcon: AnimatedIcons.menu_close,
+        overlayColor: context.darkGreen,
+        overlayOpacity: 0.5,
+        backgroundColor: context.darkGreen,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.group),
+            label: 'Update Contributions',
+            backgroundColor: context.white,
+            onTap: () {
+              bottomSheetBuilder(context, memberPayments);
+            },
+          ),
+          SpeedDialChild(
+            child: localBill.status != 'Paid'
+                ? Icon(Icons.done_all)
+                : Icon(Icons.cancel),
+            label: localBill.status != 'Paid'
+                ? 'Mark Bill as Paid'
+                : 'Mark Bill as Pending',
+            backgroundColor: localBill.status != 'Paid'
+                ? Colors.green
+                : Colors.grey,
+            foregroundColor: context.white,
+            onTap: _updateStatus,
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.edit),
+            label: 'Edit Bill',
+            backgroundColor: Colors.amber,
+            onTap: () async {
+              final bool? didEdit = await editBillBottomSheetBuilder(
+                context,
+                localBill,
+              );
+
+              if (didEdit == true) {
+                _loadPayments();
+              }
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.delete),
+            label: 'Delete Bill',
+            backgroundColor: Colors.red,
+          ),
+        ],
+      ),
       appBar: AppBar(
         backgroundColor: context.darkBackground,
         elevation: 1,
         iconTheme: IconThemeData(color: context.white),
-        title: Text(
-          'View Bill',
-          style: TextStyle(fontWeight: FontWeight.bold, color: context.white),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'View Bill',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: context.white,
+              ),
+            ),
+          ],
         ),
       ),
       body: RefreshIndicator(
@@ -124,7 +198,7 @@ class _ViewBillPageState extends State<ViewBillPage> {
                         children: [
                           Text('Amount Due'),
                           Text(
-                            widget.bill.amountDue.toString(),
+                            localBill.amountDue.toString(),
                             style: context.viewBillTitle,
                           ),
                         ],
@@ -136,9 +210,18 @@ class _ViewBillPageState extends State<ViewBillPage> {
                           Text(
                             DateFormat(
                               'MMM dd, yyyy',
-                            ).format(widget.bill.dueDate).toString(),
+                            ).format(localBill.dueDate).toString(),
                           ),
-                          Text(widget.bill.status),
+                          ShadBadge(
+                            backgroundColor: localBill.status == 'Paid'
+                                ? Colors.green
+                                : localBill.status == 'Pending'
+                                ? Colors.amber
+                                : localBill.status == 'Overdue'
+                                ? Colors.red
+                                : Colors.grey,
+                            child: Text(localBill.status),
+                          ),
                         ],
                       ),
                     ],
@@ -148,14 +231,11 @@ class _ViewBillPageState extends State<ViewBillPage> {
                   ),
                   Align(
                     alignment: AlignmentGeometry.centerLeft,
-                    child: Text(
-                      widget.bill.title,
-                      style: context.viewBillTitle,
-                    ),
+                    child: Text(localBill.title, style: context.viewBillTitle),
                   ),
                   Align(
                     alignment: AlignmentGeometry.centerLeft,
-                    child: Text(widget.bill.description ?? 'No description'),
+                    child: Text(localBill.description ?? 'No description'),
                   ),
                   ShadSeparator.horizontal(
                     margin: EdgeInsets.symmetric(vertical: 16),
@@ -182,32 +262,10 @@ class _ViewBillPageState extends State<ViewBillPage> {
                           children: [
                             for (var i = 0; i < memberPayments.length; i++) ...[
                               _buildMemberAccordion(memberPayments[i], i + 1),
-                              const SizedBox(
-                                height: 8,
-                              ), // Gap between accordions
+                              const SizedBox(height: 8),
                             ],
                           ],
                         ),
-                  SizedBox(height: 16),
-                  ShadButton(
-                    child: Text('Update Contributions'),
-                    onPressed: () {
-                      bottomSheetBuilder(context, memberPayments);
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  ShadButton(
-                    backgroundColor: widget.bill.status != 'Paid'
-                        ? Colors.green
-                        : Colors.grey,
-                    leading: widget.bill.status != 'Paid'
-                        ? Icon(Icons.done_all)
-                        : Icon(Icons.cancel),
-                    onPressed: _updateStatus,
-                    child: widget.bill.status != 'Paid'
-                        ? Text('Mark Bill as Paid')
-                        : Text('Mark Bill as Pending'),
-                  ),
                 ],
               ),
             ),
@@ -322,6 +380,41 @@ Future<dynamic> bottomSheetBuilder(
             ),
           ),
           Flexible(child: UpdateBillPaymentPage(billPayment: payments)),
+        ],
+      ),
+    ),
+  );
+}
+
+Future<bool?> editBillBottomSheetBuilder(
+  BuildContext context,
+  BillInstance billInstance,
+) {
+  return showMoonModalBottomSheet(
+    context: context,
+    backgroundColor: context.lightGreen,
+    enableDrag: true,
+    height: MediaQuery.of(context).size.height * 0.7,
+    builder: (BuildContext context) => Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 4,
+            width: 40,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            decoration: ShapeDecoration(
+              color: context.darkBackground,
+              shape: MoonSquircleBorder(
+                borderRadius: BorderRadius.circular(
+                  16,
+                ).squircleBorderRadius(context),
+              ),
+            ),
+          ),
+          Flexible(child: EditBillPage(bill: billInstance)),
         ],
       ),
     ),

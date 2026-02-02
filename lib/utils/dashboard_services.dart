@@ -53,22 +53,19 @@ class DashboardServices {
     }
   }
 
-  Future getMonthlyBillInstances() async {
+  Future<List<Map<String, dynamic>>?> getMonthlyBillInstances() async {
     try {
       final bills = await _supabase
           .from('bill_instances')
           .select()
-          .gte('due_date', firstDay.toIso8601String())
-          .lte('due_date', lastDay.toIso8601String())
-          // 1. Primary sort: Status (e.g., 'pending' before 'paid' alphabetically)
-          // Set ascending to false if you want 'paid' at the top
-          .order('status', ascending: false)
-          // 2. Secondary sort: Closest due date first
+          .or(
+            'and(due_date.gte.${firstDay.toIso8601String()},due_date.lte.${lastDay.toIso8601String()}),status.neq.Paid',
+          )
+          .order('status', ascending: true)
           .order('due_date', ascending: true);
 
       return bills;
     } catch (e) {
-      // print('Error fetching expenses: $e');
       return null;
     }
   }

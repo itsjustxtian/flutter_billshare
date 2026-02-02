@@ -94,6 +94,81 @@ class BillService {
     await _supabase.from('bill_payments').insert(paymentRows);
   }
 
+  Future<void> updateBillInstance({
+    required String instanceId,
+    required Map<String, dynamic> formData,
+  }) async {
+    try {
+      // 1. Update the bill and get the "Source of Truth" back
+      final billResponse = await _supabase
+          .from('bill_instances')
+          .update({
+            'title': formData['title'],
+            'description': formData['description'],
+            'amount_due': _parseAmount(formData['total_amount']),
+            'due_date': (formData['due_date'] as DateTime).toIso8601String(),
+            'members_snapshot': formData['members'],
+            'tag_color': formData['tag_color'],
+          })
+          .eq('instance_id', instanceId)
+          .select()
+          .single();
+
+      // 2. Extract values from the response to ensure accuracy
+      final List<dynamic> newMemberList =
+          billResponse['members_snapshot'] ?? [];
+      final double totalAmount = (billResponse['amount_due'] as num).toDouble();
+      final double individualShare =
+          totalAmount / (newMemberList.isEmpty ? 1 : newMemberList.length);
+
+      // 3. Get existing payment records for this bill
+      final existingPayments = await _supabase
+          .from('bill_payments')
+          .select()
+          .eq('instance_id', instanceId);
+
+      // Map names to their existing payment data for quick lookup
+      final Map<String, dynamic> existingMemberMap = {
+        for (var p in existingPayments) p['member_name'].toString(): p,
+      };
+
+      // 4. REMOVE: Delete payments for people no longer in the snapshot
+      for (var name in existingMemberMap.keys) {
+        if (!newMemberList.contains(name)) {
+          await _supabase
+              .from('bill_payments')
+              .delete()
+              .eq('instance_id', instanceId)
+              .eq('member_name', name);
+        }
+      }
+
+      // 5. UPDATE or INSERT members
+      for (var name in newMemberList) {
+        if (existingMemberMap.containsKey(name)) {
+          // Person stayed: Update their required share (keeping their 'amount_paid' safe)
+          await _supabase
+              .from('bill_payments')
+              .update({'amount_owed': individualShare})
+              .eq('instance_id', instanceId)
+              .eq('member_name', name);
+        } else {
+          // New person added: Create a fresh row
+          await _supabase.from('bill_payments').insert({
+            'instance_id': instanceId,
+            'member_name': name,
+            'amount_owed': individualShare,
+            'amount_paid': 0.0,
+            'status': 'Pending',
+          });
+        }
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Failed to update bill: $e');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchPaymentsForBill(
     String instanceId,
   ) async {
@@ -126,6 +201,20 @@ class BillService {
         .from('bill_instances')
         .update({'status': status})
         .eq('instance_id', instanceId);
+  }
+
+  Future<BillInstance?> fetchBillById(String instanceId) async {
+    try {
+      final response = await _supabase
+          .from('bill_instances')
+          .select()
+          .eq('instance_id', instanceId)
+          .single();
+
+      return BillInstance.fromMap(response);
+    } catch (e) {
+      throw Exception('Error fetching bill details: $e');
+    }
   }
 
   double _parseAmount(dynamic val) {

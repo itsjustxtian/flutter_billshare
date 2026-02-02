@@ -80,6 +80,15 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
+  void _handleAddBill() async {
+    final result = await bottomSheetBuilder(context);
+
+    // If result is true, the user successfully saved a bill
+    if (result == true) {
+      _refreshAllData();
+    }
+  }
+
   // Update your existing methods to use the new logic
   @override
   void initState() {
@@ -205,11 +214,7 @@ class _HomepageState extends State<Homepage> {
             backgroundColor: const Color(0xFF3A4F39),
             labelStyle: const TextStyle(fontSize: 18.0),
             onTap: () {
-              setState(() => _isSheetOpen = true); // Hide the FAB
-
-              bottomSheetBuilder(context).then((_) {
-                setState(() => _isSheetOpen = false); // Show the FAB again
-              });
+              _handleAddBill();
             },
           ),
         ],
@@ -434,19 +439,15 @@ class BillCard extends StatelessWidget {
                                 decorationThickness: 2.0,
                               ),
                             ),
-                            Text(
-                              status,
-                              style: TextStyle(
-                                // Tip: Maybe make 'Paid' look different (e.g., green)
-                                color: status.toLowerCase() == 'paid'
-                                    ? Colors.green.withValues(alpha: 0.7)
-                                    : context.foreground.withValues(
-                                        alpha: 0.50,
-                                      ),
-                                fontWeight: status.toLowerCase() == 'paid'
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
+                            ShadBadge(
+                              backgroundColor: status == 'Paid'
+                                  ? Colors.green
+                                  : status == 'Pending'
+                                  ? Colors.amber
+                                  : status == 'Overdue'
+                                  ? Colors.red
+                                  : Colors.grey,
+                              child: Text(status),
                             ),
                           ],
                         ),

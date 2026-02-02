@@ -77,7 +77,7 @@ class _UpdateBillPaymentPageState extends State<UpdateBillPaymentPage> {
         Expanded(
           flex: 1,
           child: Text(
-            '₱${payment.amountOwed.toStringAsFixed(0)}',
+            '₱${payment.amountOwed.toStringAsFixed(2)}',
             textAlign: TextAlign.center,
           ),
         ),
