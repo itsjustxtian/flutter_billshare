@@ -4,6 +4,12 @@ This application was created using Flutter. It is a Bill/Expense tracking applic
 
 ## Updates
 
+- _02/17/2026_
+  - Removed date presets.
+  - Showed all bills instead.
+  - Recurring bills still not working.
+- _02/06/2026_
+  - To fix: Date Range with presets doesn't work.
 - _02/02/2026_
   - Added more details to Add Bill, Dashboard, Edit Bill
   - Added Update/Edit bill function in View Bill page

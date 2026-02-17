@@ -69,4 +69,22 @@ class DashboardServices {
       return null;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getAllBillInstances() async {
+    try {
+      // .select() defaults to '*'
+      final List<Map<String, dynamic>> bills = await _supabase
+          .from('bill_instances')
+          .select()
+          .order('status', ascending: false)
+          .order('due_date', ascending: false);
+
+      return bills; // Returns empty list if no rows found, which is fine
+    } catch (e) {
+      // Log the error for debugging
+      print('Error fetching bills: $e');
+      // Consider rethrowing or returning a custom Error object
+      return [];
+    }
+  }
 }

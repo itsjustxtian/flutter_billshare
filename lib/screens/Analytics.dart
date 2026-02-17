@@ -18,6 +18,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text("This is the Analytics page."));
+    return Center(child: Text("This page is not yet implemented. Stay tuned!"));
   }
 }

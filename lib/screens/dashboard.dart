@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_billshare/screens/add_bill.dart';
 import 'package:flutter_billshare/screens/view_bill.dart';
@@ -100,9 +102,19 @@ class _HomepageState extends State<Homepage> {
     await _refreshAllData();
 
     if (!mounted) return;
-    ShadSonner.of(
-      context,
-    ).show(const ShadToast(title: Text('Dashboard updated!')));
+
+    final sonner = ShadSonner.of(context);
+    final id = Random().nextInt(1000);
+    sonner.show(
+      ShadToast(
+        id: id,
+        title: Text('Dashboard updated!'),
+        action: ShadButton(
+          child: const Text('Close'),
+          onPressed: () => sonner.hide(id),
+        ),
+      ),
+    );
   }
 
   Widget _buildTotalMonthlyExpenses(BuildContext context) {
@@ -209,10 +221,8 @@ class _HomepageState extends State<Homepage> {
         spaceBetweenChildren: 12,
         children: [
           SpeedDialChild(
-            child: const Icon(Icons.receipt_long, color: Colors.white),
+            child: Icon(Icons.receipt_long),
             label: 'Add New Bill',
-            backgroundColor: const Color(0xFF3A4F39),
-            labelStyle: const TextStyle(fontSize: 18.0),
             onTap: () {
               _handleAddBill();
             },
@@ -320,6 +330,7 @@ class _HomepageState extends State<Homepage> {
                             tagColor: bill['tag_color'] ?? '#FFFFFF',
                             status: bill['status'],
                             billData: bill,
+                            onRefresh: _refreshAllData,
                           ),
                         );
                       }),
@@ -341,6 +352,7 @@ class BillCard extends StatelessWidget {
   final String tagColor;
   final String status;
   final Map<String, dynamic> billData;
+  final VoidCallback onRefresh;
 
   const BillCard({
     super.key,
@@ -350,6 +362,7 @@ class BillCard extends StatelessWidget {
     required this.tagColor,
     required this.status,
     required this.billData,
+    required this.onRefresh,
   });
 
   @override
@@ -358,14 +371,21 @@ class BillCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          // <--- Make this async
+          // 1. Await the result from the ViewBillPage
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) =>
                   ViewBillPage(bill: BillInstance.fromMap(billData)),
             ),
           );
+
+          // 2. If result is true (bill was deleted or updated), trigger refresh
+          if (result == true) {
+            onRefresh();
+          }
         },
         child: ShadCard(
           width: double.infinity,

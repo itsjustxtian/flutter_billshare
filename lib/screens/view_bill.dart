@@ -110,6 +110,76 @@ class _ViewBillPageState extends State<ViewBillPage> {
     }
   }
 
+  Future<void> _handleDelete() async {
+    // 1. Show Shadcn UI Confirmation Dialog
+    final confirmed = await showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog.alert(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        radius: BorderRadius.circular(8),
+        title: Text('Are you absolutely sure?'),
+        description: const Padding(
+          padding: EdgeInsets.only(bottom: 0),
+          child: Text(
+            'This action cannot be undone. This will permanently delete this bill.',
+          ),
+        ),
+        actions: [
+          ShadButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ShadButton.destructive(
+            child: const Text('Delete'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        setState(() => isLoading = true);
+        await _billService.deleteBillInstance(localBill.instanceId);
+
+        if (!mounted) return;
+
+        final sonner = ShadSonner.of(context);
+        final id = Random().nextInt(1000);
+        sonner.show(
+          ShadToast(
+            id: id,
+            title: const Text('Bill successfully deleted.'),
+            action: ShadButton(
+              child: const Text('Close'),
+              onPressed: () => sonner.hide(id),
+            ),
+          ),
+        );
+
+        // 2. Pop the View Page and tell the Home Screen to refresh
+        Navigator.pop(context, true);
+      } catch (e) {
+        setState(() => isLoading = false);
+        if (!mounted) return;
+
+        final sonner = ShadSonner.of(context);
+        final id = Random().nextInt(1000);
+        sonner.show(
+          ShadToast.destructive(
+            id: id,
+            title: const Text('Failed to delete bill.'),
+            // description: Text(e.toString()),
+            action: ShadButton.destructive(
+              child: const Text('Close'),
+              onPressed: () => sonner.hide(id),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,6 +230,7 @@ class _ViewBillPageState extends State<ViewBillPage> {
             child: Icon(Icons.delete),
             label: 'Delete Bill',
             backgroundColor: Colors.red,
+            onTap: _handleDelete,
           ),
         ],
       ),

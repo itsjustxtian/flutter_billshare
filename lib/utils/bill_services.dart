@@ -164,8 +164,23 @@ class BillService {
         }
       }
     } catch (e) {
-      print(e);
       throw Exception('Failed to update bill: $e');
+    }
+  }
+
+  Future<void> deleteBillInstance(String instanceId) async {
+    try {
+      await _supabase
+          .from('bill_payments')
+          .delete()
+          .eq('instance_id', instanceId);
+
+      await _supabase
+          .from('bill_instances')
+          .delete()
+          .eq('instance_id', instanceId);
+    } catch (e) {
+      throw Exception('Failed to delete bill: $e');
     }
   }
 
