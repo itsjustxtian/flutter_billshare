@@ -31,6 +31,40 @@ class _ViewBillPageState extends State<ViewBillPage> {
     _loadPayments();
   }
 
+  Future<void> _handleDuplicateBill() async {
+    try {
+      setState(() => isLoading = true);
+
+      // 1. Call the service to clone the bill and its payments
+      await _billService.duplicateBill(localBill.instanceId);
+
+      if (!mounted) return;
+
+      // 2. Show Success Toast
+      ShadSonner.of(context).show(
+        const ShadToast(
+          title: Text('Bill Duplicated!'),
+          description: Text(
+            'A copy of this bill has been created as "Pending".',
+          ),
+        ),
+      );
+
+      // 3. Pop back to Home with a "true" result to trigger a refresh on the main list
+      Navigator.pop(context, true);
+    } catch (e) {
+      setState(() => isLoading = false);
+      if (!mounted) return;
+
+      ShadSonner.of(context).show(
+        ShadToast.destructive(
+          title: const Text('Duplication failed'),
+          description: Text(e.toString()),
+        ),
+      );
+    }
+  }
+
   Future<void> _loadPayments() async {
     try {
       final paymentsData = await _billService.fetchPaymentsForBill(
@@ -231,6 +265,12 @@ class _ViewBillPageState extends State<ViewBillPage> {
             label: 'Delete Bill',
             backgroundColor: Colors.red,
             onTap: _handleDelete,
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.content_copy),
+            label: 'Duplicate Bill',
+            backgroundColor: context.white,
+            onTap: _handleDuplicateBill,
           ),
         ],
       ),

@@ -108,7 +108,10 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
 
     setState(() => _isLoading = true);
     try {
-      await supabase.auth.resetPasswordForEmail(email);
+      await supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'https://itsjustxtian.github.io/flutter_billshare/',
+      );
 
       if (mounted) {
         ShadToaster.of(context).show(

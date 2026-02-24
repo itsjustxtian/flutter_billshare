@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="flutter_billshare"
+        android:label="BillShare"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -32,6 +32,12 @@
                 <data
                 android:scheme="io.supabase.flutterquickstart"
                 android:host="login-callback" />
+            </intent-filter>
+            <intent-filter android:label="flutter_billshare">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="io.supabase.billshare" android:host="reset-callback" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

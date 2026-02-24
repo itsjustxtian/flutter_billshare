@@ -94,6 +94,62 @@ class BillService {
     await _supabase.from('bill_payments').insert(paymentRows);
   }
 
+  Future<void> duplicateBill(String originalInstanceId) async {
+    try {
+      // 1. Fetch the original bill data
+      final originalBill = await _supabase
+          .from('bill_instances')
+          .select()
+          .eq('instance_id', originalInstanceId)
+          .single();
+
+      // 2. Prepare the new bill map
+      // We remove 'instance_id' and 'created_at' so Supabase generates new ones
+      final Map<String, dynamic> newBillData = Map.from(originalBill);
+      newBillData.remove('instance_id');
+      newBillData.remove('created_at');
+
+      // Update title to show it's a copy (Optional)
+      newBillData['title'] = "${originalBill['title']} (Copy)";
+
+      // Reset status to Pending for the new copy
+      newBillData['status'] = 'Pending';
+
+      // 3. Insert the duplicated bill
+      final newBillResponse = await _supabase
+          .from('bill_instances')
+          .insert(newBillData)
+          .select('instance_id, amount_due, members_snapshot')
+          .single();
+
+      // 4. Duplicate the payment rows
+      // Instead of recalculating, we can just fetch the old rows and re-link them
+      final String newInstanceId = newBillResponse['instance_id'];
+
+      final existingPayments = await _supabase
+          .from('bill_payments')
+          .select()
+          .eq('instance_id', originalInstanceId);
+
+      if (existingPayments.isNotEmpty) {
+        final List<Map<String, dynamic>> newPaymentRows = existingPayments.map((
+          p,
+        ) {
+          final Map<String, dynamic> newRow = Map.from(p);
+          newRow.remove('payment_id'); // Let DB generate new ID
+          newRow['instance_id'] = newInstanceId; // Link to new bill
+          newRow['amount_paid'] = 0.0; // Reset progress
+          newRow['paid_at'] = null; // Reset date
+          return newRow;
+        }).toList();
+
+        await _supabase.from('bill_payments').insert(newPaymentRows);
+      }
+    } catch (e) {
+      throw Exception('Failed to duplicate bill: $e');
+    }
+  }
+
   Future<void> updateBillInstance({
     required String instanceId,
     required Map<String, dynamic> formData,
