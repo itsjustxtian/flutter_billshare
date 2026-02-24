@@ -95664,7 +95664,7 @@ s=1
 break}m.Y(new A.aFY(m))
 p=4
 s=7
-return A.o(m.as.gfA().zS(i,"io.supabase.billshare://reset-callback"),$async$BT)
+return A.o(m.as.gfA().zS(i,"https://itsjustxtian.github.io/flutter_billshare/"),$async$BT)
 case 7:k=m.c
 if(k!=null)A.kl(k).dk(B.agz)
 n.push(6)
