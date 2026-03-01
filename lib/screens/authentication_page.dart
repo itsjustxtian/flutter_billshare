@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_billshare/screens/password_recovery.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -97,6 +98,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
   Future<void> _handleForgotPassword() async {
     final email = _emailController.text.trim();
 
+    // We validate the email first so we don't navigate with empty data
     if (email.isEmpty || !EmailValidator.validate(email)) {
       ShadToaster.of(context).show(
         const ShadToast.destructive(
@@ -106,29 +108,15 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
-    try {
-      await supabase.auth.resetPasswordForEmail(
-        email,
-        redirectTo: 'https://itsjustxtian.github.io/flutter_billshare/',
+    // Navigate to recovery page.
+    // We pass the email so the user doesn't have to re-type it.
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PasswordRecoveryPage(email: email),
+        ),
       );
-
-      if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Reset link sent!'),
-            description: Text('Check your inbox to reset your password.'),
-          ),
-        );
-      }
-    } on AuthException catch (error) {
-      if (mounted) {
-        ShadToaster.of(
-          context,
-        ).show(ShadToast.destructive(description: Text(error.message)));
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 

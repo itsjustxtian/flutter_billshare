@@ -117,88 +117,58 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  Widget _buildTotalMonthlyExpenses(BuildContext context) {
+  Widget _buildSummaryCard({
+    required BuildContext context,
+    required String title,
+    required String description,
+    required double amount,
+    required bool isLoading,
+  }) {
     return ShadCard(
       width: double.infinity,
-      title: Text(
-        'Monthly Summary',
-        style: TextStyle(color: context.foreground),
-      ),
+      title: Text(title, style: TextStyle(color: context.foreground)),
       description: Text(
-        'Total expenses for this month.',
+        description,
         style: TextStyle(color: context.foreground),
       ),
       border: Border.all(width: 1, color: context.accentGreen),
       backgroundColor: context.cardBackground,
       child: Padding(
-        padding: EdgeInsetsGeometry.only(top: 16),
-        child: ShadCard(
+        padding: const EdgeInsets.only(top: 16),
+        child: Container(
           width: double.infinity,
-          backgroundColor: Color(0xFF000000).withValues(alpha: 0.25),
-          border: Border.all(width: 0, color: Colors.transparent),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_isLoading)
-                const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                Text(
-                  'PHP ${_totalMonthlyExpense.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: context.foreground,
-                  ),
-                ),
-            ],
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF000000).withValues(alpha: 0.25),
+            borderRadius: BorderRadius.circular(8),
           ),
-        ),
-      ),
-    );
-  }
+          child: Center(
+            child: isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      // This calculates a safe font size based on the card width
+                      double fontSize = constraints.maxWidth < 300 ? 20 : 24;
 
-  Widget _buildRemainingMonthlyExpenses(BuildContext context) {
-    return ShadCard(
-      width: double.infinity,
-      title: Text(
-        'Remaining Expenses',
-        style: TextStyle(color: context.foreground),
-      ),
-      description: Text(
-        'Remaining expenses as of this month.',
-        style: TextStyle(color: context.foreground),
-      ),
-      border: Border.all(width: 1, color: context.accentGreen),
-      backgroundColor: context.cardBackground,
-      child: Padding(
-        padding: EdgeInsetsGeometry.only(top: 16),
-        child: ShadCard(
-          width: double.infinity,
-          backgroundColor: Color(0xFF000000).withValues(alpha: 0.25),
-          border: Border.all(width: 0, color: Colors.transparent),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_isLoading)
-                const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                Text(
-                  'PHP ${_totalRemainingExpense.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: context.foreground,
+                      return FittedBox(
+                        fit: BoxFit.scaleDown, // Shrinks text if it's too wide
+                        child: Text(
+                          'PHP ${amount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: fontSize,
+                            fontWeight: FontWeight.w800,
+                            color: context.foreground,
+                            // Increase height to 1.2 to prevent vertical clipping
+                            height: 1.2,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-            ],
           ),
         ),
       ),
@@ -255,11 +225,23 @@ class _HomepageState extends State<Homepage> {
                           itemBuilder:
                               (BuildContext context, int itemIndex, int _) {
                                 if (itemIndex == 0) {
-                                  return _buildRemainingMonthlyExpenses(
-                                    context,
+                                  return _buildSummaryCard(
+                                    context: context,
+                                    title: 'Remaining Expenses',
+                                    description:
+                                        'Remaining expenses as of this month.',
+                                    amount: _totalRemainingExpense,
+                                    isLoading: _isLoading,
                                   );
                                 } else {
-                                  return _buildTotalMonthlyExpenses(context);
+                                  return _buildSummaryCard(
+                                    context: context,
+                                    title: 'Monthly Summary',
+                                    description:
+                                        'Total expenses for this month.',
+                                    amount: _totalMonthlyExpense,
+                                    isLoading: _isLoading,
+                                  );
                                 }
                               },
                         ),
