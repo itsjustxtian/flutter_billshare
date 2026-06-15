@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_billshare/utils/bill_services.dart';
 import 'package:flutter_billshare/utils/utils.dart';
@@ -119,10 +121,20 @@ class _UpdateBillPaymentPageState extends State<UpdateBillPaymentPage> {
       // 3. Success feedback
       if (!mounted) return;
 
+      final sonner = ShadSonner.of(context);
+      final id = Random().nextInt(1000);
+
       ShadSonner.of(context).show(
-        const ShadToast(
+        ShadToast(
+          id: id,
           title: Text('Payments Updated'),
           description: Text('All records have been successfully saved.'),
+          backgroundColor: const Color(0xFFDBF6DA),
+          action: ShadButton(
+            backgroundColor: const Color(0xFF24240F),
+            child: const Text('Close'),
+            onPressed: () => sonner.hide(id),
+          ),
         ),
       );
 
@@ -131,10 +143,21 @@ class _UpdateBillPaymentPageState extends State<UpdateBillPaymentPage> {
     } catch (e) {
       // 4. Error feedback
       if (!mounted) return;
+
+      final sonner = ShadSonner.of(context);
+      final id = Random().nextInt(1000);
+
       ShadSonner.of(context).show(
         ShadToast.destructive(
+          id: id,
           title: const Text('Update Failed'),
           description: Text(e.toString()),
+          backgroundColor: const Color(0xFFDBF6DA),
+          action: ShadButton(
+            backgroundColor: const Color(0xFF24240F),
+            child: const Text('Close'),
+            onPressed: () => sonner.hide(id),
+          ),
         ),
       );
     } finally {

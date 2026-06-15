@@ -112,23 +112,6 @@ class _EditBillPageState extends State<EditBillPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ShadButton(
-                      backgroundColor: context.darkGreen,
-                      hoverBackgroundColor: context.darkGreen.withValues(
-                        alpha: 0.8,
-                      ),
-                      leading: const Icon(Icons.receipt_long, size: 18),
-
-                      child: const Text('Update Bill'),
-                      onPressed: () {
-                        submitForm();
-                      },
-                    ),
-                  ],
-                ),
                 ShadSelectFormField<BillColor>(
                   id: 'tag_color',
                   minWidth: 350,
@@ -208,7 +191,7 @@ class _EditBillPageState extends State<EditBillPage> {
                     child: Text('PHP'),
                   ),
                   decoration: context.addBillFormInputDecoration,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   textInputAction: TextInputAction.done,
                   autovalidateMode: AutovalidateMode.onUnfocus,
                   validator: (v) {
@@ -352,7 +335,24 @@ class _EditBillPageState extends State<EditBillPage> {
                     );
                   },
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ShadButton(
+                      backgroundColor: context.darkGreen,
+                      hoverBackgroundColor: context.darkGreen.withValues(
+                        alpha: 0.8,
+                      ),
+                      leading: const Icon(Icons.receipt_long, size: 18),
+
+                      child: const Text('Update Bill'),
+                      onPressed: () {
+                        submitForm();
+                      },
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
