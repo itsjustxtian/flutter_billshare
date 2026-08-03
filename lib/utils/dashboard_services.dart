@@ -82,7 +82,7 @@ class DashboardServices {
       return bills; // Returns empty list if no rows found, which is fine
     } catch (e) {
       // Log the error for debugging
-      print('Error fetching bills: $e');
+      // print('Error fetching bills: $e');
       // Consider rethrowing or returning a custom Error object
       return [];
     }

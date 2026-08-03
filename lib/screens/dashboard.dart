@@ -20,7 +20,7 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   final today = DateTime.now();
-  bool _isSheetOpen = false;
+  final bool _isSheetOpen = false;
   final DashboardServices _services = DashboardServices();
   List<Map<String, dynamic>> bills = [];
   double _totalMonthlyExpense = 0.0;
