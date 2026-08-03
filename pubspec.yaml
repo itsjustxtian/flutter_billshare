@@ -42,6 +42,9 @@ dependencies:
   moon_design: ^1.1.0
   flutter_colorpicker: ^1.1.0
 
+dependency_overrides:
+  lucide_icons_flutter: 0.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
