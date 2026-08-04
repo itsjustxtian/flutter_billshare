@@ -35,15 +35,12 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.0.0
-  shadcn_ui: ^0.30.0
+  shadcn_ui: ^0.30.0 #need to find a way to update this and maybe update the dart sdk version or flutter sdk version
   email_validator: ^3.0.0
   google_fonts: ^8.0.0
   flutter_speed_dial: ^7.0.0
   moon_design: ^1.1.0
   flutter_colorpicker: ^1.1.0
-
-dependency_overrides:
-  lucide_icons_flutter: 0.0.0
 
 dev_dependencies:
   flutter_test:
